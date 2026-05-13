@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🏆 Student Dashboard | Hackathon Ready</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-container">
+    <div class="login-card">
+        <i class="fas fa-graduation-cap login-icon"></i>
+        <h2 class="gradient-text">Student Hub</h2>
+        <input type="text" id="loginId" placeholder="Email or Roll No">
+        <input type="password" id="loginPwd" placeholder="Password">
+        <button onclick="doLogin()" class="btn btn-primary full-width">Login →</button>
+        <p class="demo-cred">Admin: admin@demo.com / admin123 | Student: S1001 / pass1001</p>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display: none;">
+    <nav class="navbar">
+        <div class="nav-brand"><i class="fas fa-brain"></i> ProStudent</div>
+        <div class="nav-actions">
+            <button id="darkModeToggle" class="btn dark-toggle">🌙</button>
+            <span id="roleBadge" class="role-badge"></span>
+            <button onclick="logout()" class="btn btn-danger">Exit</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- STUDENT DASHBOARD -->
+        <div id="studentDashboard">
+            <div class="grid-3">
+                <div class="card">
+                    <div class="profile-header">
+                        <img id="stuAvatar" class="avatar" src="https://ui-avatars.com/api/?background=4f46e5&color=fff&size=100">
+                        <h3 id="stuName">-</h3>
+                        <p id="stuRoll">-</p>
+                        <p id="stuEmail">-</p>
+                        <p id="stuContact">📞 -</p>
+                        <span id="feeBadge" class="fee-badge"></span>
+                    </div>
+                    <hr>
+                    <label>🎯 Skills</label>
+                    <p id="stuSkills" class="skills-box">-</p>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Performance Analysis</h3>
+                    <canvas id="stuRadar" height="200"></canvas>
+                    <div class="criteria-grid">
+                        <div><strong>Attendance</strong><br><span id="attPerc">-</span>%</div>
+                        <div><strong>CT1</strong><br><span id="ct1Perc">-</span>%</div>
+                        <div><strong>Mid</strong><br><span id="midPerc">-</span>%</div>
+                        <div><strong>CT2</strong><br><span id="ct2Perc">-</span>%</div>
+                        <div><strong>Overall</strong><br><span id="overPerc">-</span>%</div>
+                    </div>
+                    <div id="riskMsg" class="risk-box"></div>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-robot"></i> AI Assistant</h3>
+                    <div id="chatBox" class="chat-box"></div>
+                    <div class="chat-input-group">
+                        <input type="text" id="chatInp" placeholder="Ask me anything...">
+                        <button onclick="sendMsg()" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 Subject-wise Marks (CT1, CT2, Mid Sem)</h3>
+                <div class="table-wrapper">
+                    <table id="marksTable">
+                        <thead><tr><th>Subject</th><th>CT1</th><th>CT2</th><th>Mid</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>📅 Weekly Timetable (with Staff)</h3>
+                    <div id="studentTimetable" class="timetable-container"></div>
+                </div>
+                <div class="card">
+                    <h3>📢 Important Notices</h3>
+                    <div id="studentNotices" class="notices-list"></div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card"><h3>📌 Assignments</h3><div id="stuAssignList"></div></div>
+                <div class="card"><h3>🧪 Practicals (DAA, Python, VLab)</h3><div id="stuPractList"></div></div>
+            </div>
+        </div>
+
+        <!-- ADMIN DASHBOARD -->
+        <div id="adminDashboard" style="display: none;">
+            <div class="tab-bar">
+                <button class="tab-btn" data-tab="students">👥 Students</button>
+                <button class="tab-btn" data-tab="subjects">📚 Subjects</button>
+                <button class="tab-btn" data-tab="attendance">📅 Attendance</button>
+                <button class="tab-btn" data-tab="assignments">📝 Assignments</button>
+                <button class="tab-btn" data-tab="practicals">🧪 Practicals</button>
+                <button class="tab-btn" data-tab="timetable">📅 Timetable</button>
+                <button class="tab-btn" data-tab="notices">📢 Notices</button>
+                <button class="tab-btn" data-tab="analytics">📊 Analytics</button>
+            </div>
+
+            <div id="studentsTab" class="card">
+                <div class="flex-between">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="searchBox" placeholder="🔍 Search by name / roll" class="search-input">
+                        <button id="searchButton" class="btn btn-primary">Search</button>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="showAddStudentForm()" class="btn btn-success">+ Add Student</button>
+                        <button onclick="triggerCSV()" class="btn btn-primary">📂 CSV Bulk</button>
+                        <input type="file" id="csvFile" style="display: none;" accept=".csv">
+                    </div>
+                </div>
+                <div id="studentsList"></div>
+            </div>
+
+            <div id="subjectsTab" class="card" style="display: none;">
+                <div class="flex-between"><h3>Dynamic Subjects</h3><button onclick="addSubject()" class="btn btn-success">+ Add</button></div>
+                <div id="subjectsList"></div>
+                <p class="note">Note: Changing subjects affects all students' marks.</p>
+            </div>
+
+            <div id="attendanceTab" class="card" style="display: none;">
+                <div class="flex-between">
+                    <div><label>Date: <input type="date" id="attDate"></label></div>
+                    <div><button onclick="loadAttendance()" class="btn btn-primary">Load</button>
+                    <button onclick="saveAttendance()" class="btn btn-success">Save</button></div>
+                </div>
+                <div id="attendanceTable"></div>
+            </div>
+
+            <div id="assignmentsTab" class="card" style="display: none;">
+                <div class="flex-between"><h3>Assignments</h3><button onclick="showAssignModal()" class="btn btn-success">+ New Assignment</button></div>
+                <div id="adminAssignList"></div>
+                <hr>
+                <h3>✅ Per-Student Completion Matrix</h3>
+                <div class="table-wrapper"><table id="completionTable"></table></div>
+            </div>
+
+            <div id="practicalsTab" class="card" style="display: none;">
+                <h3>Practical Status (DAA, Python, VLab)</h3>
+                <div id="practicalsTable"></div>
+            </div>
+
+            <div id="timetableTab" class="card" style="display: none;">
+                <h3>Edit Weekly Timetable (with Staff Names)</h3>
+                <div id="timetableEditor"></div>
+                <button onclick="saveTimetable()" class="btn btn-primary" style="margin-top: 16px;">Save Timetable</button>
+            </div>
+
+            <div id="noticesTab" class="card" style="display: none;">
+                <div class="flex-between"><h3>Manage Notices</h3><button onclick="showAddNoticeModal()" class="btn btn-success">+ Add Notice</button></div>
+                <div id="noticesListAdmin"></div>
+            </div>
+
+            <div id="analyticsTab" class="card" style="display: none;">
+                <canvas id="classChart" height="150"></canvas>
+                <div class="analytics-grid">
+                    <div><h4>🏆 Top Performers</h4><div id="topStudents"></div></div>
+                    <div><h4>⚠️ At-Risk Students</h4><div id="riskStudents"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALS -->
+<div id="studentModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle">Add/Edit Student</h3>
+        <input type="hidden" id="editId">
+        <div class="form-grid">
+            <input id="sName" placeholder="Full Name">
+            <input id="sEmail" placeholder="Email">
+            <input id="sRoll" placeholder="Roll No">
+            <input id="sPass" placeholder="Password">
+            <input id="sContact" placeholder="Contact">
+            <select id="sFee"><option value="paid">Paid</option><option value="pending">Pending</option></select>
+            <div class="full-width"><input id="sSkills" placeholder="Skills (comma separated)"></div>
+        </div>
+        <h4>Subject-wise Marks</h4>
+        <div id="marksModalContainer" class="marks-grid"></div>
+        <button onclick="saveStudent()" class="btn btn-primary full-width">Save Student</button>
+    </div>
+</div>
+
+<div id="assignModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close" onclick="closeAssignModal()">&times;</span>
+        <h3>Assignment</h3>
+        <input type="hidden" id="assignEditId">
+        <select id="assignSubj"></select>
+        <input id="assignTitle" placeholder="Assignment Title">
+        <input id="assignDead" type="date">
+        <textarea id="assignDesc" rows="2" placeholder="Description"></textarea>
+        <button onclick="saveAssignment()" class="btn btn-primary full-width">Save</button>
+    </div>
+</div>
+
+<div id="noticeModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close" onclick="closeNoticeModal()">&times;</span>
+        <h3>Add Notice</h3>
+        <input type="hidden" id="editNoticeId">
+        <input type="text" id="noticeTitle" placeholder="Notice Title (e.g., Exam Form Release)">
+        <textarea id="noticeDesc" rows="3" placeholder="Description / Instructions"></textarea>
+        <label>Release Date: <input type="date" id="noticeReleaseDate"></label>
+        <label>Last Date: <input type="date" id="noticeLastDate"></label>
+        <button onclick="saveNotice()" class="btn btn-primary full-width" style="margin-top: 12px;">Save Notice</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
